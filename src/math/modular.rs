@@ -38,7 +38,9 @@ impl Prime {
     fn parse(string: &str) -> Result<Self, Box<dyn Error>> {
         let value = Integer::from(Integer::parse(string)?);
         if value <= 1 {
-            Err(Box::new(ValueError("".into()))) // TODO change message.
+            Err(Box::new(ValueError(
+                "Expected a value greater than 1".into(),
+            )))
         } else {
             Ok(Prime { value })
         }
