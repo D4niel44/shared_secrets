@@ -87,7 +87,6 @@ impl<'a> ModInteger<'a> {
 impl Field for ModInteger<'_> {
     /// Returns the modular integer 0 with the same
     /// modulus as the number that called this method.
-    // TODO Test this
     fn zero(&self) -> Self {
         ModInteger {
             value: Integer::new(),
@@ -97,7 +96,6 @@ impl Field for ModInteger<'_> {
 
     /// Returns the modular integer 1 with the same
     /// modulus as the number that called this method.
-    // TODO Test this
     fn one(&self) -> Self {
         ModInteger {
             value: Integer::from(1),
@@ -106,7 +104,6 @@ impl Field for ModInteger<'_> {
     }
 
     /// Returns the additive inverse of this number.
-    // TODO Test this
     fn add_inverse(mut self) -> Self {
         self.value = &self.prime.value - self.value;
         self
@@ -117,7 +114,6 @@ impl Field for ModInteger<'_> {
     /// # Panics
     ///
     /// This method panics if the modulus of this number is not a prime number.
-    // TODO Test this
     fn mul_inverse(mut self) -> Self {
         self.value = self
             .value
@@ -294,6 +290,48 @@ mod tests {
     #[test]
     fn mod_int_parse_negative() {
         parse_test!(7, -3, 4);
+    }
+
+    #[test]
+    fn mod_int_zero() {
+        // just call the method twice and check it returns the sam thing
+        let prime = Prime::parse("3").unwrap();
+        let base = ModInteger::parse("2", &prime).unwrap();
+        let z1 = base.zero();
+        let z2 = base.zero();
+        assert_valid_mod_int!(z1, prime);
+        assert_valid_mod_int!(z2, prime);
+        assert_eq!(z1.value, z2.value);
+    }
+
+    #[test]
+    fn mod_int_one() {
+        // just call the method twice and check it returns the sam thing
+        let prime = Prime::parse("3").unwrap();
+        let base = ModInteger::parse("2", &prime).unwrap();
+        let z1 = base.one();
+        let z2 = base.one();
+        assert_valid_mod_int!(z1, prime);
+        assert_valid_mod_int!(z2, prime);
+        assert_eq!(z1.value, z2.value);
+    }
+
+    #[test]
+    fn mod_int_add_inverse() {
+        let prime = Prime::parse("7").unwrap();
+        let a = ModInteger::parse("5", &prime).unwrap();
+        let inverse = a.add_inverse();
+        assert_valid_mod_int!(inverse, prime);
+        assert_eq!(inverse.value, Integer::from(2));
+    }
+
+    #[test]
+    fn mod_int_mul_inverse() {
+        let prime = Prime::parse("5").unwrap();
+        let a = ModInteger::parse("3", &prime).unwrap();
+        let inverse = a.mul_inverse();
+        assert_valid_mod_int!(inverse, prime);
+        assert_eq!(inverse.value, Integer::from(2));
     }
 
     macro_rules! operation_test {
