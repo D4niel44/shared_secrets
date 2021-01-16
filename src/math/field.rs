@@ -1,4 +1,4 @@
-use std::ops::{Add, Div, Mul, Sub};
+use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
 /// Represents a mathematical field.
 /// Provides methods for adding, multiplying
@@ -12,7 +12,9 @@ use std::ops::{Add, Div, Mul, Sub};
 /// multiplication by the multiplicative inverse (a / b must equal
 /// a * b.mul_inverse() if b != 0)
 ///
-pub trait Field: Sized + Add + Sub + Mul + Div + PartialEq {
+pub trait Field:
+    Sized + Add + AddAssign + Sub + SubAssign + Mul + MulAssign + Div + DivAssign + PartialEq
+{
     /// Returns the zero of the field.
     /// Implementations of this method should always return the
     /// same result.
