@@ -2,12 +2,13 @@ use std::error::Error;
 use std::fmt::Display;
 use std::ops::{Add, Div, Mul, Sub};
 
-use rug::ops::RemRounding;
-use rug::{integer::Order, Integer};
+use rug::{integer::Order, ops::RemRounding, Integer};
 
-use crate::math::error::{ParseIntegerError, ValueError};
-use crate::math::field::Field;
-use crate::math::random::Rng;
+use crate::math::{
+    error::{ParseIntegerError, ValueError},
+    random::Rng,
+    Field,
+};
 
 /// Simple struct for representing prime numbers to use with modular
 /// integers.
