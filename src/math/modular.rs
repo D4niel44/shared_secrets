@@ -63,7 +63,18 @@ impl PartialEq for Prime {
 ///
 /// # Usage Example
 /// ```
-/// // TODO
+/// use shared_secrets::math::{Prime, ModInteger};
+///
+/// // Create a prime to use with the modular integers.
+/// let prime = Prime::parse("7").unwrap();
+///
+/// // Create modular integers with the prime.
+/// let a = ModInteger::parse("2", &prime).unwrap();
+/// let mut b = ModInteger::parse("6", &prime).unwrap();
+///
+/// // Start having fun!
+/// assert_eq!(ModInteger::parse("5", &prime).unwrap(), a / b);
+///
 /// ```
 #[derive(Debug, Eq)]
 pub struct ModInteger<'a> {
@@ -202,7 +213,17 @@ impl Add for ModInteger<'_> {
 impl Sub for ModInteger<'_> {
     type Output = Self;
 
-    // TODO document this.
+    /// Subtract rhs to this modular integer. This operation
+    /// is guaranteed to behave as summing by the additive inverse
+    /// of rhs.
+    ///
+    /// It is required that this number and the other have
+    /// the same prime as modulus.
+    ///
+    /// # Panics
+    ///
+    /// If the prime number of self is not the same as the prime
+    /// number of rhs.
     fn sub(self, rhs: Self) -> Self::Output {
         panic_if_different_modulus!(self, rhs);
         ModInteger {
@@ -215,7 +236,15 @@ impl Sub for ModInteger<'_> {
 impl Mul for ModInteger<'_> {
     type Output = Self;
 
-    // TODO document this.
+    /// Multiplies this modular integer by rhs.
+    ///
+    /// It is required that this number and the other have
+    /// the same prime as modulus.
+    ///
+    /// # Panics
+    ///
+    /// If the prime number of self is not the same as the prime
+    /// number of rhs.
     fn mul(self, rhs: Self) -> Self::Output {
         panic_if_different_modulus!(self, rhs);
         ModInteger {
@@ -228,7 +257,18 @@ impl Mul for ModInteger<'_> {
 impl Div for ModInteger<'_> {
     type Output = Self;
 
-    // TODO document this.
+    /// Divides this number by rhs. This operation is guaranteed
+    /// to behave as multiplying by the multiplication inverse of
+    /// rhs.
+    ///
+    /// It is required that this number and the other have
+    /// the same prime as modulus.
+    ///
+    /// # Panics
+    ///
+    /// - If the prime number of self is not the same as the prime
+    /// number of rhs.
+    /// - If try to divide by zero.
     fn div(self, rhs: Self) -> Self::Output {
         panic_if_different_modulus!(self, rhs);
         if rhs.value == 0 {
