@@ -14,3 +14,10 @@ rpassword = "5.0.0"
 version = "1.11"
 default-features = false
 features = ["integer", "rand"]
+
+[dev-dependencies]
+criterion = "0.3"
+
+[[bench]]
+name = "modular_integers"
+harness = false
