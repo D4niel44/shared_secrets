@@ -3,7 +3,7 @@ use std::fmt::Display;
 use std::ops::{Add, Div, Mul, Sub};
 
 use rug::ops::RemRounding;
-use rug::Integer;
+use rug::{integer::Order, Integer};
 
 use crate::math::error::{ParseIntegerError, ValueError};
 use crate::math::field::Field;
@@ -35,7 +35,7 @@ impl Prime {
     /// This methods only wraps the given string as a Prime number,
     /// this method does not check if the integer represented by
     /// this string is actually a prime.
-    fn parse(string: &str) -> Result<Self, Box<dyn Error>> {
+    pub fn parse(string: &str) -> Result<Self, Box<dyn Error>> {
         let value = Integer::from(Integer::parse(string)?);
         if value <= 1 {
             Err(Box::new(ValueError(
@@ -59,6 +59,11 @@ impl PartialEq for Prime {
 /// field behaviour for modular integers, but it is required
 /// that users of this struct use actually prime numbers when
 /// instantiating this type.
+///
+/// # Usage Example
+/// ```
+/// // TODO
+/// ```
 #[derive(Debug, Eq)]
 pub struct ModInteger<'a> {
     value: Integer,
@@ -83,6 +88,43 @@ impl<'a> ModInteger<'a> {
             value: Integer::from(Integer::parse(s)?).rem_euc(&prime.value),
             prime,
         })
+    }
+
+    /// Creates a new modular integer from a slice of bytes.
+    ///
+    /// This method assigns the most significant element first
+    /// and treats each u8 as little endian.
+    pub fn from_digits(digits: &[u8], prime: &'a Prime) -> Self {
+        ModInteger {
+            value: Integer::from_digits(digits, Order::MsfLe).rem_euc(&prime.value),
+            prime,
+        }
+    }
+
+    /// Returns the digits of this integer.
+    ///
+    /// This operation is guaranted to be the inverse
+    /// operation of the from_digits integer creation
+    /// as long as the number created with from_digits
+    /// does not exceed prime.
+    ///
+    /// That is
+    ///
+    /// ```
+    /// use shared_secrets::math::{Prime, ModInteger};
+    ///
+    /// let a: [u8; 3] = [1, 2, 3];
+    /// let prime = Prime::parse("1000003").unwrap();
+    /// let b = ModInteger::from_digits(&a, &prime).to_digits();
+    /// for i in 0..3 {
+    ///   assert_eq!(a[i], b[i]);
+    /// }
+    /// ```
+    ///
+    /// The digits are returned in Most significant digit first order
+    /// and each u8 is in litle endian.
+    pub fn to_digits(&self) -> Vec<u8> {
+        self.value.to_digits::<u8>(Order::MsfLe)
     }
 }
 
@@ -294,9 +336,68 @@ mod tests {
         parse_test!(7, -3, 4);
     }
 
+    macro_rules! test_from_digits {
+        ($digits:expr, $prime:expr, $expected:expr) => {
+            let prime = Prime::parse($prime).unwrap();
+            let result = ModInteger::from_digits(&$digits, &prime);
+            assert_valid_mod_int!(result, prime);
+            assert_eq!(result.value, $expected);
+        };
+    }
+
+    #[test]
+    fn mod_int_from_digits_general() {
+        test_from_digits!([0x1, 0x14, 0x6], "1000003", 0x11406);
+    }
+
+    #[test]
+    fn mod_int_from_digits_single_digits() {
+        test_from_digits!([0x1, 0x2, 0x3], "1000003", 0x010203);
+    }
+
+    #[test]
+    fn mod_int_from_digits_example() {
+        test_from_digits!([0x12, 0x34, 0x56, 0x78], "5915587277", 0x1234_5678);
+    }
+
+    macro_rules! test_to_digits {
+        ($number:expr, $prime:expr, $expected:expr) => {
+            let prime = Prime::parse($prime).unwrap();
+            let result = ModInteger::parse($number, &prime).unwrap().to_digits();
+            assert_eq!(result, $expected);
+        };
+    }
+
+    #[test]
+    fn mod_int_to_digits() {
+        test_to_digits!("66051", "1000003", [0x1, 0x2, 0x3]);
+    }
+
+    #[test]
+    fn mod_int_digits() {
+        // checks that to_digits is the inverse function of
+        // from_digits
+        let digits = [0xf, 0x12, 0xe];
+        let prime = Prime::parse("5915587277").unwrap();
+        let result = ModInteger::from_digits(&digits, &prime).to_digits();
+        for i in 0..3 {
+            assert_eq!(digits[i], result[i]);
+        }
+    }
+
+    #[test]
+    fn mod_int_digits_reverse() {
+        // The same as before but in the reverse order.
+        let prime = Prime::parse("1000003").unwrap();
+        let mut rng = Rng::new();
+        let number = ModInteger::random(&prime, &mut rng);
+        let result = ModInteger::from_digits(&number.to_digits(), &prime);
+        assert_eq!(result.value, number.value);
+    }
+
     #[test]
     fn mod_int_zero() {
-        // just call the method twice and check it returns the sam thing
+        // just call the method twice and check it returns the same thing
         let prime = Prime::parse("3").unwrap();
         let base = ModInteger::parse("2", &prime).unwrap();
         let z1 = base.zero();
@@ -308,7 +409,7 @@ mod tests {
 
     #[test]
     fn mod_int_one() {
-        // just call the method twice and check it returns the sam thing
+        // just call the method twice and check it returns the same thing
         let prime = Prime::parse("3").unwrap();
         let base = ModInteger::parse("2", &prime).unwrap();
         let z1 = base.one();
