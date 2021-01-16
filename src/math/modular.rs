@@ -80,6 +80,11 @@ impl PartialEq for Prime {
 /// assert_eq!(ModInteger::parse("5", &prime).unwrap(), a / b);
 ///
 /// ```
+///
+/// # Notes
+///
+/// In order to perform Operations between two modular integers, they must have
+/// the same prime as modulus.
 #[derive(Debug, Eq)]
 pub struct ModInteger<'a> {
     value: Integer,
@@ -144,6 +149,27 @@ impl<'a> ModInteger<'a> {
     }
 }
 
+// gets the multiplicative inverse of an rug::Integer
+macro_rules! invert {
+    ($integer:ident) => {{
+        $integer
+            .value
+            .invert(&$integer.prime.value)
+            .expect("Prime is not an actual prime")
+    }};
+}
+
+// gets the multiplicative inverse of an rug::Integer reference
+macro_rules! invert_ref {
+    ($integer:ident) => {{
+        Integer::from(
+            (&$integer.value)
+                .invert_ref(&$integer.prime.value)
+                .expect("Prime is not an actual prime"),
+        )
+    }};
+}
+
 impl Field for ModInteger<'_> {
     /// Returns the modular integer 0 with the same
     /// modulus as the number that called this method.
@@ -175,10 +201,7 @@ impl Field for ModInteger<'_> {
     ///
     /// This method panics if the modulus of this number is not a prime number.
     fn mul_inverse(mut self) -> Self {
-        self.value = self
-            .value
-            .invert(&self.prime.value)
-            .expect("Prime is not an actual prime");
+        self.value = invert!(self);
         self
     }
 }
@@ -193,7 +216,7 @@ macro_rules! panic_if_different_modulus {
     };
 }
 
-macro_rules! operation {
+macro_rules! base_operation {
     ($lhs:ident, $rhs:ident, $new_value:expr) => {{
         panic_if_different_modulus!($lhs, $rhs);
         ModInteger {
@@ -203,159 +226,57 @@ macro_rules! operation {
     };};
 }
 
-impl Add for ModInteger<'_> {
+macro_rules! operation {
+    ($trait:ident, $method:ident, $op:tt) => {
+
+
+impl $trait for ModInteger<'_> {
     type Output = Self;
 
-    /// Returns the sum of two modular integers.
-    ///
-    /// It is required that this number and the other have
-    /// the same prime as modulus.
-    ///
-    /// # Panics
-    ///
-    /// If the prime number of self is not the same as the prime
-    /// number of rhs.
-    fn add(self, rhs: Self) -> Self::Output {
-        operation!(self, rhs, self.value + rhs.value)
+    fn $method(self, rhs: Self) -> Self::Output {
+        base_operation!(self, rhs, self.value $op rhs.value)
     }
 }
 
-impl<'a> Add<ModInteger<'_>> for &ModInteger<'a> {
+impl<'a> $trait<ModInteger<'_>> for &ModInteger<'a> {
     type Output = ModInteger<'a>;
 
-    fn add(self, rhs: ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, &self.value + rhs.value)
+    fn $method(self, rhs: ModInteger<'_>) -> Self::Output {
+        base_operation!(self, rhs, &self.value $op rhs.value)
     }
 }
 
-impl<'a> Add<&ModInteger<'_>> for ModInteger<'a> {
+impl<'a> $trait<&ModInteger<'_>> for ModInteger<'a> {
     type Output = ModInteger<'a>;
 
-    fn add(self, rhs: &ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, self.value + &rhs.value)
+    fn $method(self, rhs: &ModInteger<'_>) -> Self::Output {
+        base_operation!(self, rhs, self.value $op &rhs.value)
     }
 }
 
-impl<'a> Add<&ModInteger<'_>> for &ModInteger<'a> {
+impl<'a> $trait<&ModInteger<'_>> for &ModInteger<'a> {
     type Output = ModInteger<'a>;
 
-    fn add(self, rhs: &ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, Integer::from(&self.value + &rhs.value))
+    fn $method(self, rhs: &ModInteger<'_>) -> Self::Output {
+        base_operation!(self, rhs, Integer::from(&self.value $op &rhs.value))
     }
 }
 
-impl Sub for ModInteger<'_> {
-    type Output = Self;
-
-    /// Subtract rhs to this modular integer. This operation
-    /// is guaranteed to behave as summing by the additive inverse
-    /// of rhs.
-    ///
-    /// It is required that this number and the other have
-    /// the same prime as modulus.
-    ///
-    /// # Panics
-    ///
-    /// If the prime number of self is not the same as the prime
-    /// number of rhs.
-    fn sub(self, rhs: Self) -> Self::Output {
-        operation!(self, rhs, self.value - rhs.value)
-    }
+}
 }
 
-impl<'a> Sub<ModInteger<'_>> for &ModInteger<'a> {
-    type Output = ModInteger<'a>;
-
-    fn sub(self, rhs: ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, &self.value - rhs.value)
-    }
-}
-
-impl<'a> Sub<&ModInteger<'_>> for ModInteger<'a> {
-    type Output = ModInteger<'a>;
-
-    fn sub(self, rhs: &ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, self.value - &rhs.value)
-    }
-}
-
-impl<'a> Sub<&ModInteger<'_>> for &ModInteger<'a> {
-    type Output = ModInteger<'a>;
-
-    fn sub(self, rhs: &ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, Integer::from(&self.value - &rhs.value))
-    }
-}
-
-impl Mul for ModInteger<'_> {
-    type Output = Self;
-
-    /// Multiplies this modular integer by rhs.
-    ///
-    /// It is required that this number and the other have
-    /// the same prime as modulus.
-    ///
-    /// # Panics
-    ///
-    /// If the prime number of self is not the same as the prime
-    /// number of rhs.
-    fn mul(self, rhs: Self) -> Self::Output {
-        operation!(self, rhs, self.value * rhs.value)
-    }
-}
-
-impl<'a> Mul<ModInteger<'_>> for &ModInteger<'a> {
-    type Output = ModInteger<'a>;
-
-    fn mul(self, rhs: ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, &self.value * rhs.value)
-    }
-}
-
-impl<'a> Mul<&ModInteger<'_>> for ModInteger<'a> {
-    type Output = ModInteger<'a>;
-
-    fn mul(self, rhs: &ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, self.value * &rhs.value)
-    }
-}
-
-impl<'a> Mul<&ModInteger<'_>> for &ModInteger<'a> {
-    type Output = ModInteger<'a>;
-
-    fn mul(self, rhs: &ModInteger<'_>) -> Self::Output {
-        operation!(self, rhs, Integer::from(&self.value * &rhs.value))
-    }
-}
+operation!(Add, add, +);
+operation!(Sub, sub, -);
+operation!(Mul, mul, *);
 
 impl Div for ModInteger<'_> {
     type Output = Self;
 
-    /// Divides this number by rhs. This operation is guaranteed
-    /// to behave as multiplying by the multiplication inverse of
-    /// rhs.
-    ///
-    /// It is required that this number and the other have
-    /// the same prime as modulus.
-    ///
-    /// # Panics
-    ///
-    /// - If the prime number of self is not the same as the prime
-    /// number of rhs.
-    /// - If try to divide by zero.
     fn div(self, rhs: Self) -> Self::Output {
         if rhs.value == 0 {
             panic!("illegal division by 0");
         }
-        operation!(
-            self,
-            rhs,
-            self.value
-                * rhs
-                    .value
-                    .invert(&rhs.prime.value)
-                    .expect("prime is not an actual prime")
-        )
+        base_operation!(self, rhs, self.value * invert!(rhs))
     }
 }
 
@@ -366,15 +287,7 @@ impl<'a> Div<ModInteger<'_>> for &ModInteger<'a> {
         if rhs.value == 0 {
             panic!("illegal division by 0");
         }
-        operation!(
-            self,
-            rhs,
-            &self.value
-                * rhs
-                    .value
-                    .invert(&rhs.prime.value)
-                    .expect("prime is not an actual prime")
-        )
+        base_operation!(self, rhs, &self.value * invert!(rhs))
     }
 }
 
@@ -385,16 +298,7 @@ impl<'a> Div<&ModInteger<'_>> for ModInteger<'a> {
         if rhs.value == 0 {
             panic!("illegal division by 0");
         }
-        operation!(
-            self,
-            rhs,
-            self.value
-                * Integer::from(
-                    (&rhs.value)
-                        .invert_ref(&rhs.prime.value)
-                        .expect("prime is not an actual prime")
-                )
-        )
+        base_operation!(self, rhs, self.value * invert_ref!(rhs))
     }
 }
 
@@ -405,16 +309,7 @@ impl<'a> Div<&ModInteger<'_>> for &ModInteger<'a> {
         if rhs.value == 0 {
             panic!("illegal division by 0");
         }
-        operation!(
-            self,
-            rhs,
-            &self.value
-                * Integer::from(
-                    (&rhs.value)
-                        .invert_ref(&rhs.prime.value)
-                        .expect("prime is not an actual prime")
-                )
-        )
+        base_operation!(self, rhs, &self.value * invert_ref!(rhs))
     }
 }
 
@@ -457,6 +352,7 @@ impl DivAssign for ModInteger<'_> {
         self.value.rem_euc_assign(&self.prime.value);
     }
 }
+
 impl DivAssign<&ModInteger<'_>> for ModInteger<'_> {
     fn div_assign(&mut self, rhs: &ModInteger<'_>) {
         panic_if_different_modulus!(self, rhs);
@@ -493,9 +389,11 @@ impl Display for ModInteger<'_> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use crate::math::random::Rng;
     use rug::Integer;
+
+    use crate::math::random::Rng;
+
+    use super::*;
 
     #[test]
     fn prime_parse_ok() {
@@ -675,7 +573,29 @@ mod tests {
         }
     }
 
-    macro_rules! ref_operation_test {
+    macro_rules! ref_val_operation_test {
+        ($prime:expr, $lhs:expr, $rhs:expr, $op:tt, $expected:expr) => {
+        let prime = Prime::parse($prime).unwrap();
+        let lhs = ModInteger::parse($lhs, &prime).unwrap();
+        let rhs = ModInteger::parse($rhs, &prime).unwrap();
+        let result = &lhs $op rhs;
+        assert_valid_mod_int!(result, prime);
+        assert_eq!(result.value, Integer::from($expected));
+        }
+    }
+
+    macro_rules! val_ref_operation_test {
+        ($prime:expr, $lhs:expr, $rhs:expr, $op:tt, $expected:expr) => {
+        let prime = Prime::parse($prime).unwrap();
+        let lhs = ModInteger::parse($lhs, &prime).unwrap();
+        let rhs = ModInteger::parse($rhs, &prime).unwrap();
+        let result = lhs $op &rhs;
+        assert_valid_mod_int!(result, prime);
+        assert_eq!(result.value, Integer::from($expected));
+        }
+    }
+
+    macro_rules! refs_operation_test {
         ($prime:expr, $lhs:expr, $rhs:expr, $op:tt, $expected:expr) => {
         let prime = Prime::parse($prime).unwrap();
         let lhs = ModInteger::parse($lhs, &prime).unwrap();
@@ -686,81 +606,119 @@ mod tests {
         }
     }
 
+    macro_rules! assign_operation_test {
+        ($prime:expr, $lhs:expr, $rhs:expr, $op:tt, $expected:expr) => {
+        let prime = Prime::parse($prime).unwrap();
+        let mut lhs = ModInteger::parse($lhs, &prime).unwrap();
+        let rhs = ModInteger::parse($rhs, &prime).unwrap();
+        lhs $op rhs;
+        assert_valid_mod_int!(lhs, prime);
+        assert_eq!(lhs.value, Integer::from($expected));
+        }
+    }
+
+    macro_rules! ref_assign_operation_test {
+        ($prime:expr, $lhs:expr, $rhs:expr, $op:tt, $expected:expr) => {
+        let prime = Prime::parse($prime).unwrap();
+        let mut lhs = ModInteger::parse($lhs, &prime).unwrap();
+        let rhs = ModInteger::parse($rhs, &prime).unwrap();
+        lhs $op &rhs;
+        assert_valid_mod_int!(lhs, prime);
+        assert_eq!(lhs.value, Integer::from($expected));
+        }
+    }
+
+    macro_rules! all_ops_test {
+        ($prime:expr, $lhs:expr, $rhs:expr, $op:tt, $expected:expr) => {
+            operation_test!($prime, $lhs, $rhs, $op, $expected);
+            val_ref_operation_test!($prime, $lhs, $rhs, $op, $expected);
+            ref_val_operation_test!($prime, $lhs, $rhs, $op, $expected);
+            refs_operation_test!($prime, $lhs, $rhs, $op, $expected);
+        };
+    }
+
+    macro_rules! all_assign_ops_test {
+        ($prime:expr, $lhs:expr, $rhs:expr, $op:tt, $expected:expr) => {
+            assign_operation_test!($prime, $lhs, $rhs, $op, $expected);
+            ref_assign_operation_test!($prime, $lhs, $rhs, $op, $expected);
+        };
+    }
+
     #[test]
     fn mod_int_add_in_range() {
-        operation_test!("11", "2", "5", +, 7);
-        ref_operation_test!("11", "2", "5", +, 7);
+        all_ops_test!("11", "2", "5", +, 7);
+        all_assign_ops_test!("11", "2", "5", +=, 7);
     }
 
     #[test]
     fn mod_int_add_greater() {
-        operation_test!("11", "10", "10", +, 9);
-        ref_operation_test!("11", "10", "10", +, 9);
+        all_ops_test!("11", "10", "10", +, 9);
+        all_assign_ops_test!("11", "10", "10", +=, 9);
     }
 
     #[test]
     fn mod_int_add_identity() {
-        operation_test!("13", "8", "0", +, 8);
-        ref_operation_test!("13", "8", "0", +, 8);
+        all_ops_test!("13", "8", "0", +, 8);
+        all_assign_ops_test!("13", "8", "0", +=, 8);
     }
 
     #[test]
     fn mod_int_sub_in_range() {
-        operation_test!("7", "6", "5", -, 1);
-        ref_operation_test!("7", "6", "5", -, 1);
+        all_ops_test!("7", "6", "5", -, 1);
+        all_assign_ops_test!("7", "6", "5", -=, 1);
     }
 
     #[test]
     fn mod_int_sub_negative() {
-        operation_test!("5", "1", "3", -, 3);
-        ref_operation_test!("5", "1", "3", -, 3);
+        all_ops_test!("5", "1", "3", -, 3);
+        all_assign_ops_test!("5", "1", "3", -=, 3);
     }
 
     #[test]
     fn mod_int_mul_in_range() {
-        operation_test!("13", "2", "3", *, 6);
-        ref_operation_test!("13", "2", "3", *, 6);
+        all_ops_test!("13", "2", "3", *, 6);
+        all_assign_ops_test!("13", "2", "3", *=, 6);
     }
 
     #[test]
     fn mod_int_mul_greater() {
-        operation_test!("11", "10", "9", *, 2);
-        ref_operation_test!("11", "10", "9", *, 2);
+        all_ops_test!("11", "10", "9", *, 2);
+        all_assign_ops_test!("11", "10", "9", *=, 2);
     }
 
     #[test]
     fn mod_int_mul_identity() {
-        operation_test!("23", "14", "1", *, 14);
-        ref_operation_test!("23", "14", "1", *, 14);
+        all_ops_test!("23", "14", "1", *, 14);
+        all_assign_ops_test!("23", "14", "1", *=, 14);
     }
 
     #[test]
     fn mod_int_div_in_range() {
-        operation_test!("7", "1", "6", /, 6);
-        ref_operation_test!("7", "1", "6", /, 6);
+        all_ops_test!("7", "1", "6", /, 6);
+        all_assign_ops_test!("7", "1", "6", /=, 6);
     }
 
     #[test]
     fn mod_int_div_greater() {
-        operation_test!("7", "2", "3", /, 3);
-        ref_operation_test!("7", "2", "3", /, 3);
+        all_ops_test!("7", "2", "3", /, 3);
+        all_assign_ops_test!("7", "2", "3", /=, 3);
     }
 
     #[test]
     fn mod_int_div_identity() {
-        operation_test!("11", "5", "1", /, 5);
-        ref_operation_test!("11", "5", "1", /, 5);
+        all_ops_test!("11", "5", "1", /, 5);
+        all_assign_ops_test!("11", "5", "1", /=, 5);
     }
 
     #[test]
     fn mod_int_div_by_inverse() {
-        operation_test!("7", "3", "5", /, 2);
-        ref_operation_test!("7", "3", "5", /, 2);
+        all_ops_test!("7", "3", "5", /, 2);
+        all_assign_ops_test!("7", "3", "5", /=, 2);
     }
 
     #[test]
     fn mod_int_div_by_itself() {
-        operation_test!("7", "5", "5", /, 1);
-        ref_operation_test!("7", "5", "5", /, 1);
+        all_ops_test!("7", "5", "5", /, 1);
+        all_assign_ops_test!("7", "5", "5", /=, 1);
     }
 }
