@@ -6,7 +6,10 @@ pub use field::Field;
 mod polynomial;
 
 mod modular;
-pub use modular::{ModInteger, Prime};
+pub use modular::ModInteger;
+
+mod prime;
+pub use prime::*;
 
 pub mod random;
 
