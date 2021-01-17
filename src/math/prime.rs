@@ -9,7 +9,7 @@ use crate::math::error::ValueError;
 ///
 /// The objective of this type is to provide a unique instance from which
 /// references can be borrowed when creating and manipulating modular integers.
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, Hash)]
 pub struct Prime {
     pub(in crate::math) value: Integer,
 }
@@ -48,30 +48,6 @@ impl PartialEq for Prime {
         self.value == other.value
     }
 }
-
-/// Auxiliar struct to help having unique primes across programs.
-#[derive(Debug)]
-pub struct CachedPrime {
-    value: Option<Prime>,
-    value_rep: &'static str,
-}
-
-impl CachedPrime {
-    /// Returns the prime stored in this struct, computing it
-    /// only if neccessary.
-    pub fn value(&mut self) -> &Prime {
-        if self.value == None {
-            self.value = Some(Prime::parse(&self.value_rep).unwrap());
-        }
-        self.value.as_ref().unwrap()
-    }
-}
-
-pub static PRIME_257_BITS: CachedPrime = CachedPrime {
-    value: None,
-    value_rep:
-        "20835161_7316091241_2343267463_1212444825_1235562226_4704915141_8633121705_0270460481",
-};
 
 #[cfg(test)]
 mod tests {

@@ -35,7 +35,7 @@ use crate::math::{error::ParseIntegerError, random::Rng, Field, Prime};
 ///
 /// In order to perform Operations between two modular integers, they must have
 /// the same prime as modulus.
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, Hash)]
 pub struct ModInteger<'a> {
     value: Integer,
     prime: &'a Prime,
