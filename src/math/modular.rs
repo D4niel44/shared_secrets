@@ -345,30 +345,6 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn prime_parse_ok() {
-        let mut prime = "31";
-        Prime::parse(&prime).unwrap();
-        prime = "2";
-        Prime::parse(&prime).unwrap();
-    }
-
-    #[test]
-    fn prime_parse_err() -> Result<(), String> {
-        match Prime::parse("-1") {
-            Ok(_) => return Err("expected to return error".into()),
-            _ => (),
-        };
-        match Prime::parse("1") {
-            Ok(_) => return Err("expected to return error".into()),
-            _ => (),
-        };
-        match Prime::parse("0") {
-            Ok(_) => Err("expected to return error".into()),
-            _ => Ok(()),
-        }
-    }
-
     macro_rules! assert_valid_mod_int {
         ($number:expr, $prime:expr) => {
             assert!($number.value >= 0);
