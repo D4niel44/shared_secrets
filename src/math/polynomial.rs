@@ -1,5 +1,4 @@
-use crate::math::{field::Field, modular::*};
-use std::ops::{Add, Mul};
+use crate::math::*;
 
 pub type Evaluation<'a> = (ModInteger<'a>, ModInteger<'a>);
 
