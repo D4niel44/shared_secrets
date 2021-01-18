@@ -37,32 +37,40 @@ pub fn split_secret(secret: &[u8], n: usize, k: usize) -> ShareIter {
 
     // Initialize values
     let prime = Prime::parse(PRIME_257).unwrap();
+    let zero = ModInteger::parse("0", &prime).unwrap();
     let mut rng = Rng::new();
     let secret_number = ModInteger::from_digits(secret, &prime);
 
     // Create the polynomial
     let mut coefficients = Vec::with_capacity(k);
     coefficients.push(secret_number);
-    for _ in 1..k - 1 {
-        coefficients.push(ModInteger::random(&prime, &mut rng));
-    }
-    // Ensure last element is not zero
-    let mut last_coefficient = ModInteger::random(&prime, &mut rng);
-    let zero = ModInteger::parse("0", &prime).unwrap();
-    while last_coefficient == zero {
-        last_coefficient = ModInteger::random(&prime, &mut rng);
+    if k > 1 {
+        for _ in 1..k - 2 {
+            coefficients.push(ModInteger::random(&prime, &mut rng));
+        }
+        // Ensure last element is not zero
+        coefficients.push(non_zero_random(&prime, &mut rng, &zero));
     }
     let polynomial = Polynomial::from_coef(coefficients);
 
     // Compute n random evaluations of polynomial
     let mut evaluations = HashSet::with_capacity(n);
     while evaluations.len() < n {
-        let x = ModInteger::random(&prime, &mut rng);
+        let x = non_zero_random(&prime, &mut rng, &zero);
         let eval = polynomial.eval(x);
         evaluations.insert((eval.0.to_string(), eval.1.to_string()));
     }
 
     evaluations.into_iter()
+}
+
+// Computes a random ModInteger that does not equals zero.
+fn non_zero_random<'a>(prime: &'a Prime, rng: &mut Rng, zero: &ModInteger) -> ModInteger<'a> {
+    let mut random = ModInteger::random(&prime, rng);
+    while random == *zero {
+        random = ModInteger::random(&prime, rng);
+    }
+    random
 }
 
 /// Recovers a secret given an Iterator of Shares.
@@ -105,7 +113,7 @@ mod tests {
             let secret = $secret;
             let result = split_secret(&secret, $n, $k);
             assert_eq!(result.len(), $n);
-            let returned_secret = recover_secret(result.take($take));
+            let returned_secret = recover_secret(result.take($take)).unwrap();
             assert_eq!(secret, returned_secret);
         };
     }
