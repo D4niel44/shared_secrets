@@ -37,7 +37,7 @@ pub fn split_secret(secret: &[u8], n: usize, k: usize) -> ShareIter {
 
     // Initialize values
     let prime = Prime::parse(PRIME_257).unwrap();
-    let zero = ModInteger::parse("0", &prime).unwrap();
+    let zero = ModInteger::zero(&prime);
     let mut rng = Rng::new();
     let secret_number = ModInteger::from_digits(secret, &prime);
 
