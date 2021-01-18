@@ -72,6 +72,14 @@ impl<'a> ModInteger<'a> {
         }
     }
 
+    /// Returns the zero of the finite field modulus the given prime.
+    pub fn zero(prime: &'a Prime) -> Self {
+        ModInteger {
+            value: Integer::new(),
+            prime,
+        }
+    }
+
     /// Returns the digits of this integer.
     ///
     /// This operation is guaranted to be the inverse
@@ -409,6 +417,14 @@ mod tests {
     #[test]
     fn mod_int_from_digits_example() {
         test_from_digits!([0x12, 0x34, 0x56, 0x78], "5915587277", 0x1234_5678);
+    }
+
+    #[test]
+    fn mod_int_new_zero() {
+        let prime = Prime::parse("7").unwrap();
+        let result = ModInteger::zero(&prime);
+        assert_eq!(result.value, 0);
+        assert_eq!(*result.prime, prime);
     }
 
     macro_rules! test_to_digits {
