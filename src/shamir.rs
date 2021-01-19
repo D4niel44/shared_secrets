@@ -10,7 +10,7 @@ const PRIME_257: &str =
 /// A share of the secret.
 pub type Share = (String, String);
 
-/// A owning Iterator over shares.
+/// A consuming Iterator over shares.
 pub type ShareIter = hash_set::IntoIter<Share>;
 
 /// Splits a secret using shamir secret sharing scheme.
@@ -51,7 +51,7 @@ pub fn split_secret(secret: &[u8], n: usize, k: usize) -> ShareIter {
         // Ensure last element is not zero
         coefficients.push(non_zero_random(&prime, &mut rng, &zero));
     }
-    let polynomial = Polynomial::from_coeffs(coefficients);
+    let polynomial = Polynomial::from_coefficients(coefficients);
 
     // Compute n random evaluations of polynomial
     let mut evaluations = HashSet::with_capacity(n);
@@ -82,7 +82,7 @@ fn non_zero_random<'a>(prime: &'a Prime, rng: &mut Rng, zero: &ModInteger) -> Mo
 ///
 /// # Returns
 ///
-/// A vector of bytest containing the original secret.
+/// A vector of bytes containing the original secret.
 ///
 /// # Errors
 ///
@@ -99,7 +99,7 @@ pub fn recover_secret(shares: impl Iterator<Item = Share>) -> Result<Vec<u8>, Bo
         })
         .collect::<Result<Vec<Evaluation>, _>>()?;
     let polynomial = Polynomial::from_evals(evaluations)?;
-    let (_, secret_number) = polynomial.eval(ModInteger::parse("0", &prime).unwrap());
+    let (_, secret_number) = polynomial.eval(ModInteger::zero(&prime));
     Ok(secret_number.to_digits())
 }
 
