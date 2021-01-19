@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::math::*;
 use crate::math::error::ValueError;
+use crate::math::*;
 
 pub type Evaluation<'a> = (ModInteger<'a>, ModInteger<'a>);
 
@@ -30,14 +30,14 @@ impl<'a> Polynomial<'a> {
     ///
     /// # Parameters
     ///
-    /// - coeffs: A vector of coefficients. It is required that this
+    /// - coefficients: A vector of coefficients. It is required that this
     /// vector is not empty and that the last coefficient is not zero.
     ///
     /// # Panics
     ///
     /// This method panics if the constraints above are not met.
-    pub fn from_coeffs(coeffs: Vec<ModInteger<'a>>) -> Self {
-        Polynomial::Coefficients(CoeffPolynomial::new(coeffs))
+    pub fn from_coefficients(coefficients: Vec<ModInteger<'a>>) -> Self {
+        Polynomial::Coefficients(CoeffPolynomial::new(coefficients))
     }
 
     /// Creates a new polynomial given a vector of evaluations.
@@ -50,7 +50,9 @@ impl<'a> Polynomial<'a> {
     /// # Returns
     /// A polynomial or an error if the constrains are not met.
     pub fn from_evals(evaluations: Vec<Evaluation<'a>>) -> Result<Self, ValueError> {
-        Ok(Polynomial::Interpolation(InterpolationPolynomial::new(evaluations)?))
+        Ok(Polynomial::Interpolation(InterpolationPolynomial::new(
+            evaluations,
+        )?))
     }
 
     /// Returns the result from evaluating this polynomial.
@@ -63,10 +65,9 @@ impl<'a> Polynomial<'a> {
 }
 
 impl<'a> CoeffPolynomial<'a> {
-
-    /// Same as Polynomial::from_coeffs, but returns a CoeffPolynomial instead.
+    /// Same as Polynomial::from_coefficients, but returns a CoeffPolynomial instead.
     ///
-    /// It is encouraged to create this type of polynomial using Polynomial::from_coeffs
+    /// It is encouraged to create this type of polynomial using Polynomial::from_coefficients
     /// instead of using this method.
     pub fn new(coefficients: Vec<ModInteger<'a>>) -> Self {
         if coefficients.len() == 0 {
@@ -75,9 +76,7 @@ impl<'a> CoeffPolynomial<'a> {
         if *coefficients.last().unwrap() == coefficients[0].zero() {
             panic!("Last coefficient is zero");
         }
-        CoeffPolynomial {
-            coefficients,
-        }
+        CoeffPolynomial { coefficients }
     }
 
     /// Returns the result from evaluating this polynomial.
@@ -88,13 +87,12 @@ impl<'a> CoeffPolynomial<'a> {
             .coefficients
             .iter()
             .rev()
-            .fold(self.coefficients[0].zero(), |acc, coeff| acc * &x + coeff);
+            .fold(self.coefficients[0].zero(), |acc, a_i| acc * &x + a_i);
         (x, y)
     }
 }
 
 impl<'a> InterpolationPolynomial<'a> {
-
     /// Same as Polynomial::from_evals, but returns a InterpolationPolynomial instead.
     ///
     /// It is encouraged to create this type of polynomial using Polynomial::from_evals
@@ -110,36 +108,32 @@ impl<'a> InterpolationPolynomial<'a> {
             }
             unique_evals.insert(x, y);
         }
-        Ok(InterpolationPolynomial {
-            evaluations
-        })
+        Ok(InterpolationPolynomial { evaluations })
     }
 
     /// Returns the result from evaluating this polynomial.
     ///
     /// Discouraged in favor of Polynomial.eval()
     pub fn eval(&self, x: ModInteger<'a>) -> Evaluation<'a> {
-        let mut result = self.evaluations[0].0.zero();
-        for (i, (_, y)) in self.evaluations.iter().enumerate() {
-            result += y * self.eval_base_polynomial(&x, i);
-        }
-        (x, result)
+        let y = self
+            .evaluations
+            .iter()
+            .enumerate()
+            .fold(self.evaluations[0].0.zero(), |acc, (i, (_, y))| {
+                acc + (y * self.eval_base_polynomial(&x, i))
+            });
+        (x, y)
     }
 
     // evaluates the ith Lagrange base polynomial
     fn eval_base_polynomial(&self, x: &ModInteger<'a>, i: usize) -> ModInteger<'a> {
         let (x_i, _) = &self.evaluations[i];
-        let mut result = x_i.one();
-        for x_j in self
-            .evaluations
+        self.evaluations
             .iter()
             .enumerate()
-            .filter(|(k, _)| *k != i)
+            .filter(|(j, _)| i != *j)
             .map(|(_, (v, _))| v)
-        {
-            result *= (x - x_j) / (x_i - x_j);
-        }
-        result
+            .fold(x_i.one(), |acc, x_j| acc * (x - x_j) / (x_i - x_j))
     }
 }
 
@@ -153,7 +147,7 @@ mod tests {
         let prime = Prime::parse("648863").unwrap();
         let x = ModInteger::parse("3", &prime).unwrap();
         let one = x.one();
-        let polynomial = Polynomial::from_coeffs(vec![x.one(), x.one(), x]);
+        let polynomial = Polynomial::from_coefficients(vec![x.one(), x.one(), x]);
         let (_, result) = polynomial.eval(one);
 
         assert_eq!(result, ModInteger::parse("5", &prime).unwrap());
