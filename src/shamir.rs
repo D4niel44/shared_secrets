@@ -51,7 +51,7 @@ pub fn split_secret(secret: &[u8], n: usize, k: usize) -> ShareIter {
         // Ensure last element is not zero
         coefficients.push(non_zero_random(&prime, &mut rng, &zero));
     }
-    let polynomial = Polynomial::from_coef(coefficients);
+    let polynomial = Polynomial::from_coeffs(coefficients);
 
     // Compute n random evaluations of polynomial
     let mut evaluations = HashSet::with_capacity(n);
@@ -98,7 +98,7 @@ pub fn recover_secret(shares: impl Iterator<Item = Share>) -> Result<Vec<u8>, Bo
             ))
         })
         .collect::<Result<Vec<Evaluation>, _>>()?;
-    let polynomial = Polynomial::from_evals(evaluations);
+    let polynomial = Polynomial::from_evals(evaluations)?;
     let (_, secret_number) = polynomial.eval(ModInteger::parse("0", &prime).unwrap());
     Ok(secret_number.to_digits())
 }
