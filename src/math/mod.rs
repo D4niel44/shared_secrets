@@ -1,4 +1,4 @@
-// placeholder for principal structures and traits from internal modules.
+// placeholder for principal structures and traits from submodules.
 
 mod field;
 pub use field::Field;
