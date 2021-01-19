@@ -1,5 +1,5 @@
+pub mod crypto;
 pub mod math;
-pub mod shamir;
 
 use std::env::Args;
 use std::error::Error;
@@ -22,7 +22,7 @@ pub struct DecryptConfig {
 /// This enum represents a configuration to execute
 /// the cipher.
 ///
-/// Since the ciper can either work in encrypt or decrypt
+/// Since the cipher can either work in encrypt or decrypt
 /// mode, this enum contains to options Encrypt and Decrypt
 /// that wraps each of these modes.
 pub enum Config {
@@ -45,7 +45,7 @@ impl Config {
     /// - plaintext is the path to the file containing the message to encrypt.
     /// - keys-path is the path to the file where the keys will be stored.
     /// - n is the total number of shares to generate and must be grater than 2.
-    /// - r is the minimun required number of shares to decrypt the message
+    /// - r is the minimum required number of shares to decrypt the message
     /// (1 < t <= n).
     ///
     /// if decrypting:

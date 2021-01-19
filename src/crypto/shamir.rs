@@ -22,7 +22,7 @@ pub type ShareIter = hash_set::IntoIter<Share>;
 /// - k: The minimum number of shares to decipher the secret (0 < k <= n).
 ///
 /// # Returns
-/// A vector with n evaluations of the polynomial.
+/// A ShareIter with n Shares.
 ///
 /// # Panics
 ///
@@ -77,7 +77,7 @@ fn non_zero_random<'a>(prime: &'a Prime, rng: &mut Rng, zero: &ModInteger) -> Mo
 ///
 /// # Parameters
 ///
-/// - evals: An Iterator of shares, require that each share has a
+/// - shares: An Iterator of shares, require that each share has a
 /// unique first element.
 ///
 /// # Returns
