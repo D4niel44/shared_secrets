@@ -1,6 +1,3 @@
-pub mod crypto;
-pub mod math;
-
 use std::convert::TryInto;
 use std::error::Error;
 use std::fs;
@@ -13,20 +10,26 @@ use clap::ArgMatches;
 use rpassword;
 
 use crypto::{Cipher, Share};
+use error::*;
+
+pub mod crypto;
+pub mod error;
+pub mod math;
 
 // configuration when working in encrypt (c) mode.
 pub struct EncryptConfig {
-    total_evals: usize,
-    min_required_evals: usize,
-    input_file: String,
-    output_file: String,
-    password: String,
+    pub total_evals: usize,
+    // TODO make this private again.
+    pub min_required_evals: usize,
+    pub input_file: String,
+    pub output_file: String,
+    pub password: String,
 }
 
 // configuration when working in decrypt (d) mode.
 pub struct DecryptConfig {
-    encrypted_file: String,
-    shares_file: String,
+    pub encrypted_file: String,
+    pub shares_file: String,
 }
 
 /// This enum represents a configuration to execute
@@ -83,6 +86,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     }
 }
 
+// Runs the program in encrypt mode
 fn run_encrypt(config: EncryptConfig) -> Result<(), Box<dyn Error>> {
     let cipher = Cipher::new(&config.password);
     encrypt_file(&config, &cipher)?;
@@ -92,8 +96,8 @@ fn run_encrypt(config: EncryptConfig) -> Result<(), Box<dyn Error>> {
 
 // Reads, encrypts and saves the result
 fn encrypt_file(config: &EncryptConfig, cipher: &Cipher) -> Result<(), Box<dyn Error>> {
-    let file_content = fs::read(&config.input_file)?;
-    let encrypted = cipher.encrypt(&file_content)?;
+    let mut file_content = fs::read(&config.input_file)?;
+    cipher.encrypt(&mut file_content)?;
     let output_file = create_file(format!("./{}.aes", config.output_file))?;
     let mut writer = BufWriter::new(output_file);
     let original_name = Path::new(&config.input_file)
@@ -105,11 +109,12 @@ fn encrypt_file(config: &EncryptConfig, cipher: &Cipher) -> Result<(), Box<dyn E
     writer.write_all(original_name.as_bytes())?;
     writer.write_all(b"\n")?;
     // write encrypted file
-    writer.write_all(&encrypted)?;
+    writer.write_all(&file_content)?;
     writer.flush()?;
     Ok(())
 }
 
+// Save the shares in the disk
 fn save_shares(config: &EncryptConfig, cipher: &Cipher) -> Result<(), Box<dyn Error>> {
     let shares_file = create_file(format!("./{}.frg", config.output_file))?;
     let mut writer = BufWriter::new(shares_file);
@@ -132,12 +137,14 @@ fn create_file(path: String) -> Result<fs::File, std::io::Error> {
         .open(path)
 }
 
+// Runs the program in decrypt mode
 fn run_decrypt(config: DecryptConfig) -> Result<(), Box<dyn Error>> {
     let cipher = Cipher::from_shares(recover_key(&config)?.into_iter())?;
     decrypt_file(&config, &cipher)?;
     Ok(())
 }
 
+// Recovers the key from the shares file
 fn recover_key(config: &DecryptConfig) -> Result<Vec<Share>, Box<dyn Error>> {
     let reader = BufReader::new(File::open(&config.shares_file)?);
     Ok(reader
@@ -157,6 +164,7 @@ fn recover_key(config: &DecryptConfig) -> Result<Vec<Share>, Box<dyn Error>> {
         .collect::<Result<Vec<Share>, _>>()?)
 }
 
+// decrypts the file and writes the result in disk
 fn decrypt_file(config: &DecryptConfig, cipher: &Cipher) -> Result<(), Box<dyn Error>> {
     let mut reader = BufReader::new(File::open(&config.encrypted_file)?);
     // read original name
@@ -169,7 +177,7 @@ fn decrypt_file(config: &DecryptConfig, cipher: &Cipher) -> Result<(), Box<dyn E
     let mut file_content = Vec::with_capacity(file_length.try_into()?);
     reader.read_to_end(&mut file_content)?;
     // decrypt file
-    let file_content = cipher.decrypt(&file_content)?;
+    cipher.decrypt(&mut file_content)?;
     // save file
     let output_file = create_file(format!("{}", original_name))?;
     let mut writer = BufWriter::new(output_file);
@@ -178,24 +186,31 @@ fn decrypt_file(config: &DecryptConfig, cipher: &Cipher) -> Result<(), Box<dyn E
     Ok(())
 }
 
-#[derive(Debug, Clone)]
-pub struct ArgumentError(pub String);
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-impl std::fmt::Display for ArgumentError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
+    #[test]
+    fn integration() {
+        let encrypt_config = EncryptConfig {
+            total_evals: 5,
+            min_required_evals: 4,
+            input_file: "test_data/msg1.txt".into(),
+            output_file: "ciphered".into(),
+            password: "secure password".into(),
+        };
+        let decrypt_config = DecryptConfig {
+            shares_file: "ciphered.frg".into(),
+            encrypted_file: "ciphered.aes".into(),
+        };
+        run(Config::Encrypt(encrypt_config)).unwrap();
+        run(Config::Decrypt(decrypt_config)).unwrap();
+        assert_eq!(
+            fs::read("test_data/msg1.txt").unwrap(),
+            fs::read("msg1.txt").unwrap()
+        );
+        fs::remove_file("ciphered.aes").unwrap();
+        fs::remove_file("ciphered.frg").unwrap();
+        fs::remove_file("msg1.txt").unwrap();
     }
 }
-
-impl Error for ArgumentError {}
-
-#[derive(Debug, Clone)]
-pub struct CorruptFileError(pub String);
-
-impl std::fmt::Display for CorruptFileError {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Error for CorruptFileError {}
