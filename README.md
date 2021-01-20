@@ -1,7 +1,7 @@
 # shamir-secret-sharing-scheme
 
 # Falta
-- Refactor
+- ~~Refactor~~
 - Mejorar Documentación
 - Hacer el README (Recordar añadir instrucciones para compilar las dependencias para compilar C)
 - Probarlo mas
