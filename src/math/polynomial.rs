@@ -99,7 +99,7 @@ impl<'a> InterpolationPolynomial<'a> {
     /// instead of using this method.
     pub fn new(evaluations: Vec<Evaluation<'a>>) -> Result<Self, ValueError> {
         if evaluations.len() == 0 {
-            panic!("no evaluations were provided");
+            return Err(ValueError("No evaluations were provided".into()));
         }
         let mut unique_evals = HashMap::with_capacity(evaluations.len());
         for (x, y) in &evaluations {
