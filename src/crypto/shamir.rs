@@ -22,6 +22,7 @@ pub type ShareIter = hash_set::IntoIter<Share>;
 /// - k: The minimum number of shares to decipher the secret (0 < k <= n).
 ///
 /// # Returns
+///
 /// A ShareIter with n Shares.
 ///
 /// # Panics
@@ -102,6 +103,10 @@ pub fn recover_secret(shares: impl Iterator<Item = Share>) -> Result<Vec<u8>, Bo
     let (_, secret_number) = polynomial.eval(ModInteger::zero(&prime));
     Ok(secret_number.to_digits())
 }
+
+/////////////////////////////////
+// Unit testing of the module. //
+/////////////////////////////////
 
 #[cfg(test)]
 mod tests {

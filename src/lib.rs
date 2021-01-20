@@ -14,7 +14,7 @@ use rpassword;
 
 use crypto::{Cipher, Share};
 
-// configuration when working in encrypt (c) mode.
+/// Configuration when working in encrypt (c) mode.
 pub struct EncryptConfig {
     total_evals: usize,
     min_required_evals: usize,
@@ -23,7 +23,7 @@ pub struct EncryptConfig {
     password: String,
 }
 
-// configuration when working in decrypt (d) mode.
+/// Configuration when working in decrypt (d) mode.
 pub struct DecryptConfig {
     encrypted_file: String,
     shares_file: String,
@@ -76,6 +76,10 @@ impl Config {
 
 /// Runs the program, encrypting or decrypting the file according
 /// to the configuration passed.
+///
+/// # Parameters
+///
+/// - config: The enum with the given configuration mode.
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match config {
         Config::Encrypt(config) => run_encrypt(config),

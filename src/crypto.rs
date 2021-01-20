@@ -20,6 +20,15 @@ pub struct Cipher {
 impl Cipher {
     /// Creates a new cipher using the string given
     /// to generate the key.
+    ///
+    /// # Parameters
+    ///
+    /// - key: A string given by the user, used for
+    /// generating a key.
+    ///
+    /// # Returns
+    ///
+    /// A cipher with a given generated key.
     pub fn new(key: &str) -> Self {
         let key = Sha256::digest(key.as_bytes());
         Cipher {
@@ -58,6 +67,15 @@ impl Cipher {
 
     /// Encrypts the given block in place.
     ///
+    /// # Parameters
+    ///
+    /// - plaintext: An array of bytes that represent
+    /// a given decrypted block.
+    ///
+    /// # Returns
+    ///
+    /// A vector of encrypted bytes.
+    ///
     /// # Errors
     ///
     /// This method returns an error if an error occurs while encrypting
@@ -73,9 +91,18 @@ impl Cipher {
 
     /// Decrypts the given block in place.
     ///
+    /// # Parameters
+    ///
+    /// - ciphertext: An array of bytes that represent
+    /// a given encrypted block.
+    ///
+    /// # Returns
+    ///
+    /// A vector of decrypted bytes.
+    ///
     /// # Errors
     ///
-    /// This method returns an error if an error occurs while encrypting
+    /// This method returns an error if an error occurs while decrypting
     pub fn decrypt(&self, ciphertext: &[u8]) -> Result<Vec<u8>, CipherError> {
         match self
             .aes
@@ -95,6 +122,7 @@ impl Cipher {
     /// - k: The minimum number of shares to recover the secret (0 < k <= n)
     ///
     /// # Returns
+    ///
     /// A ShareIter with n Shares.
     ///
     /// # Panics
@@ -116,6 +144,10 @@ impl fmt::Display for CipherError {
 }
 
 impl Error for CipherError {}
+
+/////////////////////////////////
+// Unit testing of the module. //
+/////////////////////////////////
 
 #[cfg(test)]
 mod tests {
