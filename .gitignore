@@ -7,3 +7,6 @@
 
 # Idea folder
 .idea/
+
+# Test data folder
+test_data/
