@@ -199,3 +199,32 @@ impl std::fmt::Display for CorruptFileError {
 }
 
 impl Error for CorruptFileError {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn integration() {
+        let encrypt_config = EncryptConfig {
+            total_evals: 5,
+            min_required_evals: 4,
+            input_file: "test_data/msg1.txt".into(),
+            output_file: "ciphered".into(),
+            password: "secure password".into(),
+        };
+        let decrypt_config = DecryptConfig {
+            shares_file: "ciphered.frg".into(),
+            encrypted_file: "ciphered.aes".into(),
+        };
+        run(Config::Encrypt(encrypt_config)).unwrap();
+        run(Config::Decrypt(decrypt_config)).unwrap();
+        assert_eq!(
+            fs::read("test_data/msg1.txt").unwrap(),
+            fs::read("msg1.txt").unwrap()
+        );
+        fs::remove_file("ciphered.aes").unwrap();
+        fs::remove_file("ciphered.frg").unwrap();
+        fs::remove_file("msg1.txt").unwrap();
+    }
+}
