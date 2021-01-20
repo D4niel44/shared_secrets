@@ -144,8 +144,15 @@ fn recover_key(config: &DecryptConfig) -> Result<Vec<Share>, Box<dyn Error>> {
         .lines()
         .map::<Result<Share, Box<dyn Error>>, _>(|l| {
             let line = l?;
-            let eval: Vec<&str> = line.split(":").collect(); // TODO Make this more error prone
-            Ok((eval[0].trim().to_string(), eval[1].trim().to_string()))
+            let eval: Vec<&str> = line.split(":").collect();
+            let x = eval[0].trim().to_string();
+            let y = eval[1].trim().to_string();
+            if x.len() == 0 || y.len() == 0 || eval.len() != 2 {
+                return Err(Box::new(CorruptFileError(
+                    "fragments file is corrupt".into(),
+                )));
+            }
+            Ok((x, y))
         })
         .collect::<Result<Vec<Share>, _>>()?)
 }
@@ -181,3 +188,14 @@ impl std::fmt::Display for ArgumentError {
 }
 
 impl Error for ArgumentError {}
+
+#[derive(Debug, Clone)]
+pub struct CorruptFileError(pub String);
+
+impl std::fmt::Display for CorruptFileError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for CorruptFileError {}
