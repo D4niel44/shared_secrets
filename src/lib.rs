@@ -83,6 +83,7 @@ pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     }
 }
 
+// Runs the program in encrypt mode
 fn run_encrypt(config: EncryptConfig) -> Result<(), Box<dyn Error>> {
     let cipher = Cipher::new(&config.password);
     encrypt_file(&config, &cipher)?;
@@ -110,6 +111,7 @@ fn encrypt_file(config: &EncryptConfig, cipher: &Cipher) -> Result<(), Box<dyn E
     Ok(())
 }
 
+// Save the shares in the disk
 fn save_shares(config: &EncryptConfig, cipher: &Cipher) -> Result<(), Box<dyn Error>> {
     let shares_file = create_file(format!("./{}.frg", config.output_file))?;
     let mut writer = BufWriter::new(shares_file);
@@ -132,12 +134,14 @@ fn create_file(path: String) -> Result<fs::File, std::io::Error> {
         .open(path)
 }
 
+// Runs the program in decrypt mode
 fn run_decrypt(config: DecryptConfig) -> Result<(), Box<dyn Error>> {
     let cipher = Cipher::from_shares(recover_key(&config)?.into_iter())?;
     decrypt_file(&config, &cipher)?;
     Ok(())
 }
 
+// Recovers the key from the shares file
 fn recover_key(config: &DecryptConfig) -> Result<Vec<Share>, Box<dyn Error>> {
     let reader = BufReader::new(File::open(&config.shares_file)?);
     Ok(reader
@@ -157,6 +161,7 @@ fn recover_key(config: &DecryptConfig) -> Result<Vec<Share>, Box<dyn Error>> {
         .collect::<Result<Vec<Share>, _>>()?)
 }
 
+// decrypts the file and writes the result in disk
 fn decrypt_file(config: &DecryptConfig, cipher: &Cipher) -> Result<(), Box<dyn Error>> {
     let mut reader = BufReader::new(File::open(&config.encrypted_file)?);
     // read original name
@@ -178,6 +183,7 @@ fn decrypt_file(config: &DecryptConfig, cipher: &Cipher) -> Result<(), Box<dyn E
     Ok(())
 }
 
+/// An error that may occur when parsing arguments
 #[derive(Debug, Clone)]
 pub struct ArgumentError(pub String);
 
@@ -189,6 +195,7 @@ impl std::fmt::Display for ArgumentError {
 
 impl Error for ArgumentError {}
 
+/// An error that indicates that the shares file is corrupt
 #[derive(Debug, Clone)]
 pub struct CorruptFileError(pub String);
 
