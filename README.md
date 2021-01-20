@@ -7,7 +7,7 @@
 - Probarlo mas
 
 # Mejoras
-- Integration Test (Opcional)
+- ~~Integration Test (Opcional)~~
 - Guardar las llaves en hexadecimal( Mejora, Optimizacion)
 - Optimizar run_encrypt ILP (Mejora, Optimizacion)
 - Intentar sustituir aes-gcm por aes (Mejora, Optimizacion, Peligroso)
