@@ -7,6 +7,9 @@ use crate::math::{Evaluation, ModInteger, Polynomial, Prime};
 const PRIME_257: &str =
     "208351617316091241234326746312124448251235562226470491514186331217050270460481";
 
+// Radix used when transforming shares to evaluations
+const RADIX: i32 = 36;
+
 /// A share of the secret.
 pub type Share = (String, String);
 
@@ -58,7 +61,7 @@ pub fn split_secret(secret: &[u8], n: usize, k: usize) -> ShareIter {
     while evaluations.len() < n {
         let x = non_zero_random(&prime, &mut rng, &zero);
         let eval = polynomial.eval(x);
-        evaluations.insert((eval.0.to_string(), eval.1.to_string()));
+        evaluations.insert((eval.0.to_string_radix(RADIX), eval.1.to_string_radix(RADIX)));
     }
 
     evaluations.into_iter()
@@ -93,8 +96,8 @@ pub fn recover_secret(shares: impl Iterator<Item = Share>) -> Result<Vec<u8>, Bo
     let evaluations = shares
         .map::<Result<Evaluation, ParseIntegerError>, _>(|(x, y)| {
             Ok((
-                ModInteger::parse(&x, &prime)?,
-                ModInteger::parse(&y, &prime)?,
+                ModInteger::parse_radix(&x, &prime, RADIX)?,
+                ModInteger::parse_radix(&y, &prime, RADIX)?,
             ))
         })
         .collect::<Result<Vec<Evaluation>, _>>()?;

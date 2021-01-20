@@ -53,10 +53,23 @@ impl<'a> ModInteger<'a> {
 
     /// Creates a new integer from the string.
     ///
+    /// # Errors
     /// This method returns an error if an error occurs while parsing.
     pub fn parse(s: &str, prime: &'a Prime) -> Result<Self, ParseIntegerError> {
         Ok(ModInteger {
             value: Integer::from(Integer::parse(s)?).rem_euc(&prime.value),
+            prime,
+        })
+    }
+
+    /// Creates a new integer by parsing the string with the given radix
+    ///
+    /// # Errors
+    /// This method returns an error if an error occurs while parsing.
+    ///
+    pub fn parse_radix(s: &str, prime: &'a Prime, radix: i32) -> Result<Self, ParseIntegerError> {
+        Ok(ModInteger {
+            value: Integer::from(Integer::parse_radix(s, radix)?).rem_euc(&prime.value),
             prime,
         })
     }
@@ -104,6 +117,14 @@ impl<'a> ModInteger<'a> {
     /// and each u8 is in litle endian.
     pub fn to_digits(&self) -> Vec<u8> {
         self.value.to_digits::<u8>(Order::MsfLe)
+    }
+
+    /// Returns a string representation of the number for the given radix.
+    ///
+    /// # Panics
+    /// If the given radix is not in range 2 <= radix <= 36
+    pub fn to_string_radix(&self, radix: i32) -> String {
+        self.value.to_string_radix(radix)
     }
 }
 
