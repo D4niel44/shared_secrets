@@ -206,8 +206,9 @@ impl<'a> InterpolationPolynomial<'a> {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use crate::math::{Field, ModInteger, Prime};
+
+    use super::*;
 
     #[test]
     fn test_horner() {
