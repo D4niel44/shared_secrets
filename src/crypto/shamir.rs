@@ -108,7 +108,6 @@ pub fn recover_secret(shares: impl Iterator<Item = Share>) -> Result<Vec<u8>, Bo
 
 #[cfg(test)]
 mod tests {
-
     use super::*;
 
     macro_rules! split_secret_test {

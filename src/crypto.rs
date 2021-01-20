@@ -1,14 +1,15 @@
-pub mod shamir;
-
 use std::error::Error;
-use std::fmt;
 
 use aes_gcm::aead::{generic_array::GenericArray, AeadInPlace, NewAead};
 use aes_gcm::Aes256Gcm;
-
 use sha2::{Digest, Sha256};
 
+use error::CipherError;
+
 pub use crate::crypto::shamir::{Share, ShareIter};
+
+pub mod error;
+pub mod shamir;
 
 /// A AES-256 cipher which supports splitting keys
 /// into shares using shamir secret sharing scheme
@@ -104,18 +105,6 @@ impl Cipher {
         shamir::split_secret(&self.key, n, k)
     }
 }
-
-/// An error that may occur when encrypting or decrypting.
-#[derive(Debug, Clone)]
-pub struct CipherError(pub String);
-
-impl fmt::Display for CipherError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
-
-impl Error for CipherError {}
 
 #[cfg(test)]
 mod tests {
