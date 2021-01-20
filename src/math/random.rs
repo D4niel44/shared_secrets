@@ -15,7 +15,7 @@ impl<'a> Rng<'a> {
     }
 
     // util method to retrieve the internal wrapped instance of RandState
-    pub(crate) fn internal_rep(&mut self) -> &mut RandState<'a> {
+    pub(super) fn internal_rep(&mut self) -> &mut RandState<'a> {
         &mut self.inner
     }
 }

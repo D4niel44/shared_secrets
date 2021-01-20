@@ -1,4 +1,3 @@
-use std::error::Error;
 use std::fmt::Display;
 use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Sub, SubAssign};
 
@@ -8,56 +7,7 @@ use rug::{
     Integer,
 };
 
-use crate::math::{
-    error::{ParseIntegerError, ValueError},
-    random::Rng,
-    Field,
-};
-
-/// Simple struct for representing prime numbers to use with modular
-/// integers.
-///
-/// The objective of this type is to provide a unique instance from which
-/// references can be borrowed when creating and manipulating modular integers.
-#[derive(Debug, Eq)]
-pub struct Prime {
-    value: Integer,
-}
-
-impl Prime {
-    /// Parses the number represented by the string and returns it
-    /// as a Prime.
-    ///
-    /// Requires the string to represent a number greater or equal to 2.
-    ///
-    /// # Errors
-    ///
-    /// This methods returns an error if an error occurs while parsing
-    /// or if the number represented by the given string is lower than 2.
-    ///
-    /// # Notes
-    ///
-    /// This methods only wraps the given string as a Prime number,
-    /// this method does not check if the integer represented by
-    /// this string is actually a prime.
-    pub fn parse(string: &str) -> Result<Self, Box<dyn Error>> {
-        let value = Integer::from(Integer::parse(string)?);
-        if value <= 1 {
-            Err(Box::new(ValueError(
-                "Expected a value greater than 1".into(),
-            )))
-        } else {
-            Ok(Prime { value })
-        }
-    }
-}
-
-impl PartialEq for Prime {
-    /// Returns True if these prime number equals other.
-    fn eq(&self, other: &Self) -> bool {
-        self.value == other.value
-    }
-}
+use crate::math::{error::ParseIntegerError, random::Rng, Field, Prime};
 
 /// This structure represents a modular integer number.
 /// This type implements the Field trait in order to provide
@@ -85,7 +35,7 @@ impl PartialEq for Prime {
 ///
 /// In order to perform Operations between two modular integers, they must have
 /// the same prime as modulus.
-#[derive(Debug, Eq)]
+#[derive(Debug, Eq, Hash)]
 pub struct ModInteger<'a> {
     value: Integer,
     prime: &'a Prime,
@@ -118,6 +68,14 @@ impl<'a> ModInteger<'a> {
     pub fn from_digits(digits: &[u8], prime: &'a Prime) -> Self {
         ModInteger {
             value: Integer::from_digits(digits, Order::MsfLe).rem_euc(&prime.value),
+            prime,
+        }
+    }
+
+    /// Returns the zero of the finite field modulus the given prime.
+    pub fn zero(prime: &'a Prime) -> Self {
+        ModInteger {
+            value: Integer::new(),
             prime,
         }
     }
@@ -395,30 +353,6 @@ mod tests {
 
     use super::*;
 
-    #[test]
-    fn prime_parse_ok() {
-        let mut prime = "31";
-        Prime::parse(&prime).unwrap();
-        prime = "2";
-        Prime::parse(&prime).unwrap();
-    }
-
-    #[test]
-    fn prime_parse_err() -> Result<(), String> {
-        match Prime::parse("-1") {
-            Ok(_) => return Err("expected to return error".into()),
-            _ => (),
-        };
-        match Prime::parse("1") {
-            Ok(_) => return Err("expected to return error".into()),
-            _ => (),
-        };
-        match Prime::parse("0") {
-            Ok(_) => Err("expected to return error".into()),
-            _ => Ok(()),
-        }
-    }
-
     macro_rules! assert_valid_mod_int {
         ($number:expr, $prime:expr) => {
             assert!($number.value >= 0);
@@ -483,6 +417,14 @@ mod tests {
     #[test]
     fn mod_int_from_digits_example() {
         test_from_digits!([0x12, 0x34, 0x56, 0x78], "5915587277", 0x1234_5678);
+    }
+
+    #[test]
+    fn mod_int_new_zero() {
+        let prime = Prime::parse("7").unwrap();
+        let result = ModInteger::zero(&prime);
+        assert_eq!(result.value, 0);
+        assert_eq!(*result.prime, prime);
     }
 
     macro_rules! test_to_digits {
