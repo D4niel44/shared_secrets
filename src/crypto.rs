@@ -1,9 +1,10 @@
 pub mod shamir;
 
 use std::error::Error;
+use std::fmt;
 
 use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead};
-use aes_gcm::{Aes256Gcm, Error as AesError};
+use aes_gcm::Aes256Gcm;
 
 use sha2::{Digest, Sha256};
 
@@ -44,6 +45,11 @@ impl Cipher {
     /// first element or if it parse the shares.
     pub fn from_shares(shares: impl Iterator<Item = Share>) -> Result<Self, Box<dyn Error>> {
         let key = shamir::recover_secret(shares)?;
+        if key.len() != 32 {
+            return Err(Box::new(CipherError(
+                "Error while recovering key from shares".into(),
+            )));
+        }
         Ok(Cipher {
             aes: Aes256Gcm::new(GenericArray::from_slice(&key)),
             key,
@@ -55,9 +61,14 @@ impl Cipher {
     /// # Errors
     ///
     /// This method returns an error if an error occurs while encrypting
-    pub fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>, AesError> {
-        self.aes
+    pub fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>, CipherError> {
+        match self
+            .aes
             .encrypt(GenericArray::from_slice(&[0x44u8; 12]), plaintext)
+        {
+            Ok(v) => Ok(v),
+            Err(_) => Err(CipherError("Error while encrypting".into())),
+        }
     }
 
     /// Decrypts the given block in place.
@@ -65,9 +76,14 @@ impl Cipher {
     /// # Errors
     ///
     /// This method returns an error if an error occurs while encrypting
-    pub fn decrypt(&self, ciphertext: &[u8]) -> Result<Vec<u8>, AesError> {
-        self.aes
+    pub fn decrypt(&self, ciphertext: &[u8]) -> Result<Vec<u8>, CipherError> {
+        match self
+            .aes
             .decrypt(GenericArray::from_slice(&[0x44u8; 12]), ciphertext)
+        {
+            Ok(v) => Ok(v),
+            Err(_) => Err(CipherError("Error while decrypting".into())),
+        }
     }
 
     /// Splits the key of this cipher into n shares with
@@ -88,6 +104,18 @@ impl Cipher {
         shamir::split_secret(&self.key, n, k)
     }
 }
+
+/// An error that may occur when encrypting or decrypting.
+#[derive(Debug, Clone)]
+pub struct CipherError(pub String);
+
+impl fmt::Display for CipherError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Error for CipherError {}
 
 #[cfg(test)]
 mod tests {
