@@ -16,17 +16,17 @@ use crypto::{Cipher, Share};
 
 // configuration when working in encrypt (c) mode.
 pub struct EncryptConfig {
-    total_evals: usize,
-    min_required_evals: usize,
-    input_file: String,
-    output_file: String,
-    password: String,
+    pub total_evals: usize, // TODO make this private again.
+    pub min_required_evals: usize,
+    pub input_file: String,
+    pub output_file: String,
+    pub password: String,
 }
 
 // configuration when working in decrypt (d) mode.
 pub struct DecryptConfig {
-    encrypted_file: String,
-    shares_file: String,
+    pub encrypted_file: String,
+    pub shares_file: String,
 }
 
 /// This enum represents a configuration to execute
