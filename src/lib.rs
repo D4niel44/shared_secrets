@@ -92,8 +92,8 @@ fn run_encrypt(config: EncryptConfig) -> Result<(), Box<dyn Error>> {
 
 // Reads, encrypts and saves the result
 fn encrypt_file(config: &EncryptConfig, cipher: &Cipher) -> Result<(), Box<dyn Error>> {
-    let file_content = fs::read(&config.input_file)?;
-    let encrypted = cipher.encrypt(&file_content)?;
+    let mut file_content = fs::read(&config.input_file)?;
+    cipher.encrypt(&mut file_content)?;
     let output_file = create_file(format!("./{}.aes", config.output_file))?;
     let mut writer = BufWriter::new(output_file);
     let original_name = Path::new(&config.input_file)
@@ -105,7 +105,7 @@ fn encrypt_file(config: &EncryptConfig, cipher: &Cipher) -> Result<(), Box<dyn E
     writer.write_all(original_name.as_bytes())?;
     writer.write_all(b"\n")?;
     // write encrypted file
-    writer.write_all(&encrypted)?;
+    writer.write_all(&file_content)?;
     writer.flush()?;
     Ok(())
 }
@@ -169,7 +169,7 @@ fn decrypt_file(config: &DecryptConfig, cipher: &Cipher) -> Result<(), Box<dyn E
     let mut file_content = Vec::with_capacity(file_length.try_into()?);
     reader.read_to_end(&mut file_content)?;
     // decrypt file
-    let file_content = cipher.decrypt(&file_content)?;
+    cipher.decrypt(&mut file_content)?;
     // save file
     let output_file = create_file(format!("{}", original_name))?;
     let mut writer = BufWriter::new(output_file);

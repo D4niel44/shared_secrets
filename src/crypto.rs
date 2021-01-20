@@ -3,7 +3,7 @@ pub mod shamir;
 use std::error::Error;
 use std::fmt;
 
-use aes_gcm::aead::{generic_array::GenericArray, Aead, NewAead};
+use aes_gcm::aead::{generic_array::GenericArray, AeadInPlace, NewAead};
 use aes_gcm::Aes256Gcm;
 
 use sha2::{Digest, Sha256};
@@ -61,12 +61,12 @@ impl Cipher {
     /// # Errors
     ///
     /// This method returns an error if an error occurs while encrypting
-    pub fn encrypt(&self, plaintext: &[u8]) -> Result<Vec<u8>, CipherError> {
+    pub fn encrypt(&self, plaintext: &mut Vec<u8>) -> Result<(), CipherError> {
         match self
             .aes
-            .encrypt(GenericArray::from_slice(&[0x44u8; 12]), plaintext)
+            .encrypt_in_place(GenericArray::from_slice(&[0x44u8; 12]), b"", plaintext)
         {
-            Ok(v) => Ok(v),
+            Ok(_) => Ok(()),
             Err(_) => Err(CipherError("Error while encrypting".into())),
         }
     }
@@ -76,12 +76,12 @@ impl Cipher {
     /// # Errors
     ///
     /// This method returns an error if an error occurs while encrypting
-    pub fn decrypt(&self, ciphertext: &[u8]) -> Result<Vec<u8>, CipherError> {
+    pub fn decrypt(&self, ciphertext: &mut Vec<u8>) -> Result<(), CipherError> {
         match self
             .aes
-            .decrypt(GenericArray::from_slice(&[0x44u8; 12]), ciphertext)
+            .decrypt_in_place(GenericArray::from_slice(&[0x44u8; 12]), b"", ciphertext)
         {
-            Ok(v) => Ok(v),
+            Ok(_) => Ok(()),
             Err(_) => Err(CipherError("Error while decrypting".into())),
         }
     }
@@ -128,19 +128,19 @@ mod tests {
             aes: Aes256Gcm::new(GenericArray::from_slice(&key)),
             key: key.to_vec(),
         };
-        let message = b"This is a message";
-        let ciphertext = cipher.encrypt(message.as_ref()).unwrap();
-        let result = cipher.decrypt(ciphertext.as_ref()).unwrap();
-        assert_eq!(&result, b"This is a message");
+        let mut message = b"This is a message".to_vec();
+        cipher.encrypt(&mut message).unwrap();
+        cipher.decrypt(&mut message).unwrap();
+        assert_eq!(&message, b"This is a message");
     }
 
     #[test]
     fn integrity_new() {
         let cipher = Cipher::new("This is a secure key");
-        let message = b"This is a message";
-        let ciphertext = cipher.encrypt(message.as_ref()).unwrap();
-        let result = cipher.decrypt(ciphertext.as_ref()).unwrap();
-        assert_eq!(&result, b"This is a message");
+        let mut message = b"This is a message".to_vec();
+        cipher.encrypt(&mut message).unwrap();
+        cipher.decrypt(&mut message).unwrap();
+        assert_eq!(&message, b"This is a message");
     }
 
     #[test]
@@ -150,10 +150,11 @@ mod tests {
             aes: Aes256Gcm::new(GenericArray::from_slice(&key)),
             key: key.to_vec(),
         };
-        let ciphertext = cipher.encrypt(b"message".as_ref()).unwrap();
+        let mut message = b"message".to_vec();
+        cipher.encrypt(&mut message).unwrap();
         let shares = cipher.split_key(4, 3);
         let decipher = Cipher::from_shares(shares).unwrap();
-        let plaintext = decipher.decrypt(ciphertext.as_ref()).unwrap();
-        assert_eq!(&plaintext, b"message");
+        decipher.decrypt(&mut message).unwrap();
+        assert_eq!(&message, b"message");
     }
 }
