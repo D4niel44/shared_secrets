@@ -11,7 +11,7 @@ pub struct ValueError(pub String);
 
 impl fmt::Display for ValueError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Invalid value of argument, {}", self.0)
+        write!(f, "{}", self.0)
     }
 }
 
