@@ -1,7 +1,7 @@
 # Shared Secrets
 Programa para cifrar y decifrar archivos que usa el esquema de Shamir para compartir las llaves usadas.
 
-# Integrtantes
+# Integrantes
 - Jonás García Chavelas
 - Daniel Linares Gil
 ---
@@ -31,7 +31,7 @@ para cifrar archivos, y para decifar
 ```
 ./target/release/shared_secrets d <Archivo a decifrar> <Archivo con los fragmentos de la llave>
 ```
-## Correr Pruebas
+## Correr pruebas
 Para correr las pruebas unitarias ejecutar
 ```
 cargo test
@@ -41,16 +41,3 @@ Para abrir la documentación ejecutar
 ```
 cargo doc --open --no-deps
 ```
-
-# Falta
-- ~~Refactor~~
-- Mejorar Documentación
-- Hacer el README (Recordar añadir instrucciones para compilar las dependencias para compilar C)
-- Probarlo mas
-
-# Mejoras
-- ~~Integration Test (Opcional)~~
-- ~~Guardar las llaves en hexadecimal( Mejora, Optimizacion)~~
-- Optimizar run_encrypt ILP (Mejora, Optimizacion)
-- Intentar sustituir aes-gcm por aes (Mejora, Optimizacion, Peligroso)
-
