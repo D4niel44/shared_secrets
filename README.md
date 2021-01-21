@@ -4,7 +4,7 @@ Programa para cifrar y decifrar archivos que usa el esquema de Shamir para compa
 # Integrantes
 - Jonás García Chavelas
 - Daniel Linares Gil
----
+
 ## Compilar
 Para compilar es necesario tener el compilador de Rust y el programa Cargo los cuales se pueden instalar ejecutando
 ```
