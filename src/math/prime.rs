@@ -20,6 +20,14 @@ impl Prime {
     ///
     /// Requires the string to represent a number greater or equal to 2.
     ///
+    /// # Parameters
+    ///
+    /// - string: A string from which to parse a prime.
+    ///
+    /// # Returns
+    ///
+    /// A wrapped Prime parsed from the given string.
+    ///
     /// # Errors
     ///
     /// This methods returns an error if an error occurs while parsing
@@ -48,6 +56,10 @@ impl PartialEq for Prime {
         self.value == other.value
     }
 }
+
+/////////////////////////////////
+// Unit testing of the module. //
+/////////////////////////////////
 
 #[cfg(test)]
 mod tests {

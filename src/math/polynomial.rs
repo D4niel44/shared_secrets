@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use crate::math::error::ValueError;
 use crate::math::*;
 
+/// A modular Evaluation of a polynomial
 pub type Evaluation<'a> = (ModInteger<'a>, ModInteger<'a>);
 
 /// A Modular Integers coefficients polynomial
@@ -33,6 +34,10 @@ impl<'a> Polynomial<'a> {
     /// - coefficients: A vector of coefficients. It is required that this
     /// vector is not empty and that the last coefficient is not zero.
     ///
+    /// # Returns
+    ///
+    /// A new polynomial with the given coefficients.
+    ///
     /// # Panics
     ///
     /// This method panics if the constraints above are not met.
@@ -48,7 +53,12 @@ impl<'a> Polynomial<'a> {
     /// first value and the evaluations vector should not be empty.
     ///
     /// # Returns
-    /// A polynomial or an error if the constrains are not met.
+    ///
+    /// A polynomial that satisfies the given evaluations.
+    ///
+    /// # Errors
+    ///
+    /// A ValueError if the constrains are not met.
     pub fn from_evals(evaluations: Vec<Evaluation<'a>>) -> Result<Self, ValueError> {
         Ok(Polynomial::Interpolation(InterpolationPolynomial::new(
             evaluations,
@@ -56,16 +66,35 @@ impl<'a> Polynomial<'a> {
     }
 
     /// Returns the result from evaluating this polynomial.
-    pub fn eval(&self, x: ModInteger<'a>) -> Evaluation<'a> {
+    ///
+    /// # Parameters
+    ///
+    /// - int: Modular integer from wich the evaluation is made.
+    ///
+    /// # Returns
+    ///
+    /// An evaluation of the given polynomial.
+    pub fn eval(&self, int: ModInteger<'a>) -> Evaluation<'a> {
         match self {
-            Polynomial::Coefficients(poly) => poly.eval(x),
-            Polynomial::Interpolation(poly) => poly.eval(x),
+            Polynomial::Coefficients(poly) => poly.eval(int),
+            Polynomial::Interpolation(poly) => poly.eval(int),
         }
     }
 }
 
 impl<'a> CoeffPolynomial<'a> {
     /// Same as Polynomial::from_coefficients, but returns a CoeffPolynomial instead.
+    ///
+    /// # Parameters
+    ///
+    /// - coefficients: A vector of coefficients. It is required that this
+    /// vector is not empty and that the last coefficient is not zero.
+    ///
+    /// # Returns
+    ///
+    /// A CoeffPolynomial with the given coefficients.
+    ///
+    /// # Notes
     ///
     /// It is encouraged to create this type of polynomial using Polynomial::from_coefficients
     /// instead of using this method.
@@ -79,7 +108,18 @@ impl<'a> CoeffPolynomial<'a> {
         CoeffPolynomial { coefficients }
     }
 
-    /// Returns the result from evaluating this polynomial.
+    /// Returns the result from evaluating this polynomial
+    /// by use of the horner method.
+    ///
+    /// # Parameters
+    ///
+    /// - x: Modular integer representing a coefficient.
+    ///
+    /// # Returns
+    ///
+    /// An evaluation of the given polynomial.
+    ///
+    /// # Notes
     ///
     /// Discouraged in favor of Polynomial.eval()
     pub fn eval(&self, x: ModInteger<'a>) -> Evaluation<'a> {
@@ -94,6 +134,17 @@ impl<'a> CoeffPolynomial<'a> {
 
 impl<'a> InterpolationPolynomial<'a> {
     /// Same as Polynomial::from_evals, but returns a InterpolationPolynomial instead.
+    ///
+    /// # Parameters
+    ///
+    /// - evaluations: A vector of Evaluations. Each evaluation should have a unique
+    /// first value and the evaluations vector should not be empty.
+    ///
+    /// # Returns
+    ///
+    /// An InterpolationPolynomial from the given evaluations.
+    ///
+    /// # Notes
     ///
     /// It is encouraged to create this type of polynomial using Polynomial::from_evals
     /// instead of using this method.
@@ -111,7 +162,19 @@ impl<'a> InterpolationPolynomial<'a> {
         Ok(InterpolationPolynomial { evaluations })
     }
 
-    /// Returns the result from evaluating this polynomial.
+    /// Returns the result from evaluating this polynomial
+    /// by use of lagrange interpolation.
+    ///
+    /// # Parameters
+    ///
+    /// - x: Modular integer representing the result of
+    /// an evaluation.
+    ///
+    /// # Returns
+    ///
+    /// An evaluation from the given polynomial.
+    ///
+    /// # Notes
     ///
     /// Discouraged in favor of Polynomial.eval()
     pub fn eval(&self, x: ModInteger<'a>) -> Evaluation<'a> {
@@ -136,6 +199,10 @@ impl<'a> InterpolationPolynomial<'a> {
             .fold(x_i.one(), |acc, x_j| acc * (x - x_j) / (x_i - x_j))
     }
 }
+
+/////////////////////////////////
+// Unit testing of the module. //
+/////////////////////////////////
 
 #[cfg(test)]
 mod tests {

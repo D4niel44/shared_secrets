@@ -44,6 +44,15 @@ pub struct ModInteger<'a> {
 impl<'a> ModInteger<'a> {
     /// Creates a new modular integer modulus prime using the provided
     /// random number generator.
+    ///
+    /// # Parameters
+    ///
+    /// - prime: A prime from which to create a modular integer.
+    /// - rng: A random number generator.
+    ///
+    /// # Returns
+    ///
+    /// A wrapped modular integer with the given prime as modulus.
     pub fn random(prime: &'a Prime, rng: &mut Rng) -> Self {
         ModInteger {
             value: Integer::from(prime.value.random_below_ref(rng.internal_rep())),
@@ -53,7 +62,18 @@ impl<'a> ModInteger<'a> {
 
     /// Creates a new integer from the string.
     ///
+    /// # Parameters
+    ///
+    /// - s: A string from which to create a modular integer.
+    /// - prime: A prime to have as modulus.
+    ///
+    /// # Returns
+    ///
+    /// A wrapped modular integer created from a string
+    /// with the given prime as modulus.
+    ///
     /// # Errors
+    ///
     /// This method returns an error if an error occurs while parsing.
     pub fn parse(s: &str, prime: &'a Prime) -> Result<Self, ParseIntegerError> {
         Ok(ModInteger {
@@ -76,8 +96,21 @@ impl<'a> ModInteger<'a> {
 
     /// Creates a new modular integer from a slice of bytes.
     ///
+    /// # Parameters
+    ///
+    /// - digits: A slice of bytes from which to create
+    /// a modular integer.
+    /// - prime: A prime to have as modulus.
+    ///
+    /// # Returns
+    ///
+    /// A wrapped modular integer created from a slice of bytes
+    /// with the given prime as modulus.
+    ///
+    /// # Notes
+    ///
     /// This method assigns the most significant element first
-    /// and treats each u8 as little endian.
+    /// and treats each byte as little endian.
     pub fn from_digits(digits: &[u8], prime: &'a Prime) -> Self {
         ModInteger {
             value: Integer::from_digits(digits, Order::MsfLe).rem_euc(&prime.value),
@@ -86,6 +119,15 @@ impl<'a> ModInteger<'a> {
     }
 
     /// Returns the zero of the finite field modulus the given prime.
+    ///
+    /// # Parameters
+    ///
+    /// - prime: A prime to have as modulus.
+    ///
+    /// # Returns
+    ///
+    /// The additive identity element of given field with the
+    /// given prime as modulus.
     pub fn zero(prime: &'a Prime) -> Self {
         ModInteger {
             value: Integer::new(),
@@ -112,9 +154,14 @@ impl<'a> ModInteger<'a> {
     ///   assert_eq!(a[i], b[i]);
     /// }
     /// ```
+    /// # Returns
+    ///
+    /// A vector of bytes with the digits of a modular integer.
+    ///
+    /// # Notes
     ///
     /// The digits are returned in Most significant digit first order
-    /// and each u8 is in litle endian.
+    /// and each byte is in litle endian.
     pub fn to_digits(&self) -> Vec<u8> {
         self.value.to_digits::<u8>(Order::MsfLe)
     }

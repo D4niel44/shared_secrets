@@ -1,6 +1,6 @@
 name: Shared Secrets
 version: "1.0"
-about: Aplicacion para cifrar y decifrar documentos
+about: Aplicación para cifrar y decifrar documentos
 author: Jonás García Chavelas & Daniel Linares Gil
 
 # AppSettings can be defined as a list and are **not** ascii case sensitive
@@ -21,7 +21,7 @@ subcommands:
                 required: true
                 index: 2
             - N:
-                help: Numero total de fragmentos de calve a generar (N > 2)
+                help: Numero total de fragmentos de clave a generar (N > 2)
                 required: true
                 index: 3
             - K:
@@ -34,10 +34,10 @@ subcommands:
         version: "1.0"
         args:
             - SHARES:
-                help: example subcommand option
+                help: Archivo que contiene los fragmentos de clave para decifrar
                 required: true
                 index: 2
             - ENCRYPTED_FILE:
-                help: example subcommand positional
+                help: Documento cifrado con AES
                 required: true
                 index: 1

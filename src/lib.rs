@@ -16,7 +16,7 @@ pub mod crypto;
 pub mod error;
 pub mod math;
 
-// configuration when working in encrypt (c) mode.
+/// Configuration when working in encrypt (c) mode.
 pub struct EncryptConfig {
     pub total_evals: usize,
     // TODO make this private again.
@@ -26,7 +26,7 @@ pub struct EncryptConfig {
     pub password: String,
 }
 
-// configuration when working in decrypt (d) mode.
+/// Configuration when working in decrypt (d) mode.
 pub struct DecryptConfig {
     pub encrypted_file: String,
     pub shares_file: String,
@@ -79,6 +79,10 @@ impl Config {
 
 /// Runs the program, encrypting or decrypting the file according
 /// to the configuration passed.
+///
+/// # Parameters
+///
+/// - config: The enum with the given configuration mode.
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match config {
         Config::Encrypt(config) => run_encrypt(config),
