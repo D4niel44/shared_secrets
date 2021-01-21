@@ -19,7 +19,7 @@ pub struct Cipher {
 }
 
 impl Cipher {
-    /// Creates a new cipher using the string given
+    /// Creates a new cipher using the given string
     /// to generate the key.
     ///
     /// # Parameters
@@ -42,8 +42,8 @@ impl Cipher {
     ///
     /// # Parameters
     ///
-    /// - shares: An Iterator of shares, require that each share has a
-    /// unique first element.
+    /// - shares: An Iterator of shares; it's required for each
+    /// share to have a unique first element.
     ///
     /// # Returns
     ///
@@ -52,7 +52,7 @@ impl Cipher {
     /// # Errors
     ///
     /// This method returns an error if there are two shares with the same
-    /// first element or if it parse the shares.
+    /// first element or if it failed to parse the shares.
     pub fn from_shares(shares: impl Iterator<Item = Share>) -> Result<Self, Box<dyn Error>> {
         let key = shamir::recover_secret(shares)?;
         if key.len() != 32 {
@@ -133,7 +133,6 @@ impl Cipher {
         shamir::split_secret(&self.key, n, k)
     }
 }
-
 
 /////////////////////////////////
 // Unit testing of the module. //

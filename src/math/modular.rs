@@ -84,9 +84,19 @@ impl<'a> ModInteger<'a> {
 
     /// Creates a new integer by parsing the string with the given radix
     ///
-    /// # Errors
-    /// This method returns an error if an error occurs while parsing.
+    /// # Parameters
     ///
+    /// - s: A string to be parsed.
+    /// - prime: A prime to have as modulus.
+    /// - radix: An integer to be used as radix.
+    ///
+    /// # Returns
+    ///
+    /// A wrapped modular integer created by parsing a string and a radix.
+    ///
+    /// # Errors
+    ///
+    /// This method returns an error if an error occurs while parsing.
     pub fn parse_radix(s: &str, prime: &'a Prime, radix: i32) -> Result<Self, ParseIntegerError> {
         Ok(ModInteger {
             value: Integer::from(Integer::parse_radix(s, radix)?).rem_euc(&prime.value),
@@ -154,6 +164,7 @@ impl<'a> ModInteger<'a> {
     ///   assert_eq!(a[i], b[i]);
     /// }
     /// ```
+    ///
     /// # Returns
     ///
     /// A vector of bytes with the digits of a modular integer.
@@ -168,7 +179,16 @@ impl<'a> ModInteger<'a> {
 
     /// Returns a string representation of the number for the given radix.
     ///
+    /// # Parameters
+    ///
+    /// - radix: An integer that represents the radix of the number.
+    ///
+    /// # Returns
+    ///
+    /// A string for the given number.
+    ///
     /// # Panics
+    ///
     /// If the given radix is not in range 2 <= radix <= 36
     pub fn to_string_radix(&self, radix: i32) -> String {
         self.value.to_string_radix(radix)

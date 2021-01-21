@@ -11,6 +11,7 @@ use crate::math::error::ValueError;
 /// references can be borrowed when creating and manipulating modular integers.
 #[derive(Debug, Eq, Hash)]
 pub struct Prime {
+    /// Value of the prime.
     pub(in crate::math) value: Integer,
 }
 

@@ -83,6 +83,11 @@ impl Config {
 /// # Parameters
 ///
 /// - config: The enum with the given configuration mode.
+///
+/// # Errors
+///
+/// This method returns an error if an error occurs
+/// while encrypting or decrypting
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match config {
         Config::Encrypt(config) => run_encrypt(config),

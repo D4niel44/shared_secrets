@@ -46,7 +46,7 @@ pub trait Field:
         *self == self.zero()
     }
 
-    /// returns true if this is the one of the field.
+    /// Returns true if this is the one of the field.
     fn is_one(&self) -> bool {
         *self == self.one()
     }
