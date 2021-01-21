@@ -4,7 +4,7 @@ Programa para cifrar y decifrar archivos que usa el esquema de Shamir para compa
 # Integrantes
 - Jonás García Chavelas
 - Daniel Linares Gil
----
+
 ## Compilar
 Para compilar es necesario tener el compilador de Rust y el programa Cargo los cuales se pueden instalar ejecutando
 ```
@@ -41,16 +41,3 @@ Para abrir la documentación ejecutar
 ```
 cargo doc --open --no-deps
 ```
-
-# Falta
-- ~~Refactor~~
-- Mejorar Documentación
-- Hacer el README (Recordar añadir instrucciones para compilar las dependencias para compilar C)
-- Probarlo mas
-
-# Mejoras
-- ~~Integration Test (Opcional)~~
-- ~~Guardar las llaves en hexadecimal( Mejora, Optimizacion)~~
-- Optimizar run_encrypt ILP (Mejora, Optimizacion)
-- Intentar sustituir aes-gcm por aes (Mejora, Optimizacion, Peligroso)
-
