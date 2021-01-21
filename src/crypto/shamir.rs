@@ -30,7 +30,7 @@ pub type ShareIter = hash_set::IntoIter<Share>;
 ///
 /// # Panics
 ///
-/// This method panics if the parameters constraints are not met.
+/// This method panics if the parameter constraints are not met.
 pub fn split_secret(secret: &[u8], n: usize, k: usize) -> ShareIter {
     if n <= 2 {
         panic!("n must be greater than 2");
@@ -81,7 +81,7 @@ fn non_zero_random<'a>(prime: &'a Prime, rng: &mut Rng, zero: &ModInteger) -> Mo
 ///
 /// # Parameters
 ///
-/// - shares: An Iterator of shares, require that each share has a
+/// - shares: An Iterator of shares, requires that each share has a
 /// unique first element.
 ///
 /// # Returns

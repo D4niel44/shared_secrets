@@ -10,7 +10,7 @@ Para compilar es necesario tener el compilador de Rust y el programa Cargo los c
 ```
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 ```
-Además es necesario instalar las siguientes herramientas para compilar C,por ejemplo en Debian
+Además es necesario instalar las siguientes herramientas para compilar C, por ejemplo en Debian
 ```
 sudo apt install diffutils gcc m4 make
 ```
@@ -31,7 +31,7 @@ para cifrar archivos, y para decifar
 ```
 ./target/release/shared_secrets d <Archivo a decifrar> <Archivo con los fragmentos de la llave>
 ```
-## Correr Pruebas
+## Correr pruebas
 Para correr las pruebas unitarias ejecutar
 ```
 cargo test

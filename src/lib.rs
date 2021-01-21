@@ -18,18 +18,17 @@ pub mod math;
 
 /// Configuration when working in encrypt (c) mode.
 pub struct EncryptConfig {
-    pub total_evals: usize,
-    // TODO make this private again.
-    pub min_required_evals: usize,
-    pub input_file: String,
-    pub output_file: String,
-    pub password: String,
+    total_evals: usize,
+    min_required_evals: usize,
+    input_file: String,
+    output_file: String,
+    password: String,
 }
 
 /// Configuration when working in decrypt (d) mode.
 pub struct DecryptConfig {
-    pub encrypted_file: String,
-    pub shares_file: String,
+    encrypted_file: String,
+    shares_file: String,
 }
 
 /// This enum represents a configuration to execute
@@ -83,6 +82,11 @@ impl Config {
 /// # Parameters
 ///
 /// - config: The enum with the given configuration mode.
+///
+/// # Errors
+///
+/// This method returns an error if an error occurs
+/// while encrypting or decrypting
 pub fn run(config: Config) -> Result<(), Box<dyn Error>> {
     match config {
         Config::Encrypt(config) => run_encrypt(config),
