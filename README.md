@@ -1,7 +1,7 @@
 # Shared Secrets
 Programa para cifrar y decifrar archivos que usa el esquema de Shamir para compartir las llaves usadas.
 
-# Integrtantes
+# Integrantes
 - Jonás García Chavelas
 - Daniel Linares Gil
 ---
